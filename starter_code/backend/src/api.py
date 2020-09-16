@@ -16,7 +16,7 @@ CORS(app)
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-# db_drop_and_create_all()
+db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -28,6 +28,19 @@ CORS(app)
         or appropriate status code indicating reason for failure
 '''
 
+@app.route('/drinks')
+def drinks():
+    drinks = Drink.query.all()
+    formatted_drinks = [drink.short() for drink in drinks]
+    # returns a 404 error if there are no drinks in the database e.g. if all drink have been deleted
+    if (len(drinks) == 0):
+        print('There are currently no drinks saved here')
+
+
+    return jsonify ({
+        'success': True,
+        'drinks': formatted_drinks
+    }), 200
 
 '''
 @TODO implement endpoint
@@ -37,6 +50,39 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+#
+@app.route('/drinks-detail')
+def drinks_detail():
+    drinks=Drink.query.all()
+    
+    #checks if token token is in the request header and returns a 401 error if not
+    if 'Authorization' not in request.headers:
+        abort(401)
+
+    #stores the bearer token as the variable auth_header
+    auth_header = request.headers['Authorization']
+    header_parts = auth_header.split(' ')[1]
+
+    #checks whether the header has 2 parts i.e. bearer prefix and the token itself
+    if len(header_parts) != 2:
+        abort(401)
+
+    #checks that the bearer prefix is the 1st element
+    elif header_parts[0].lower() !=  'bearer':
+        abort(401)
+
+    # if (len() == 0):
+        abort(404)
+
+    # if headertoken
+
+    print(auth_header, header_parts)
+
+    return jsonify{
+        'success': True,
+        'drinks detail':drinks.long()
+    }, auth_header
 
 
 '''

@@ -5,9 +5,9 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'fsndp.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'http://localhost:5000'
 
 ## AuthError Exception
 '''
@@ -45,6 +45,10 @@ def get_token_auth_header():
     return true otherwise
 '''
 def check_permissions(permission, payload):
+    if 'permission' not in payload:
+        abort(400)
+    if permission not in payload['permission']:
+        abort(403)
     raise Exception('Not Implemented')
 
 '''

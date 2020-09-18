@@ -37,7 +37,7 @@ def drinks():
         print('There are currently no drinks saved here')
 
 
-    return jsonify ({
+    return jsonify({
         'success': True,
         'drinks': formatted_drinks
     }), 200
@@ -51,39 +51,17 @@ def drinks():
         or appropriate status code indicating reason for failure
 '''
 
-#
 @app.route('/drinks-detail')
-def drinks_detail():
-    drinks=Drink.query.all()
-    
-    #checks if token token is in the request header and returns a 401 error if not
-    if 'Authorization' not in request.headers:
-        abort(401)
-
-    #stores the bearer token as the variable auth_header
-    auth_header = request.headers['Authorization']
-    header_parts = auth_header.split(' ')[1]
-
-    #checks whether the header has 2 parts i.e. bearer prefix and the token itself
-    if len(header_parts) != 2:
-        abort(401)
-
-    #checks that the bearer prefix is the 1st element
-    elif header_parts[0].lower() !=  'bearer':
-        abort(401)
-
-    # if (len() == 0):
-        abort(404)
-
-    # if headertoken
-
-    print(auth_header, header_parts)
-
-    return jsonify{
+@requires_auth('get:drinks-detail')
+def drinks_detail(token):
+    drinks = Drink.query.all()
+    formatted_drinks = [drink.long() for drink in drinks]
+    token = get_token_auth_header()
+    print(token)
+    return jsonify({
         'success': True,
-        'drinks detail':drinks.long()
-    }, auth_header
-
+        'drinks':formatted_drinks
+    }), 200
 
 '''
 @TODO implement endpoint
@@ -94,6 +72,25 @@ def drinks_detail():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def add_drink(token):
+    body = request.get_json()
+
+    title = body.get('title', None)
+    recipe = ('recipe', None)
+
+    try:
+        drink = Drink(title=title, recipe=recipe)
+        drink.insert()
+        
+        return jsonify({
+            'success': True,
+            'drinks': drink
+        }), 200
+    
+    except:
+        abort(422)
 
 
 '''
@@ -136,13 +133,16 @@ def unprocessable(error):
 '''
 @TODO implement error handlers using the @app.errorhandler(error) decorator
     each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False, 
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
 '''
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({
+                "success": False, 
+                "error": 404,
+                "message": "resource not found"
+                }), 404
+
+
 
 '''
 @TODO implement error handler for 404
@@ -154,3 +154,10 @@ def unprocessable(error):
 @TODO implement error handler for AuthError
     error handler should conform to general task above 
 '''
+@app.errorhandler(401)
+def Auth_error(error):
+    return jsonify({
+                "success": False, 
+                "error": 401,
+                "message": "resource not found"
+                }), 401

@@ -1,5 +1,5 @@
 import json
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack, abort
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
@@ -31,7 +31,27 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
-   raise Exception('Not Implemented')
+    #checks if token token is in the request header and returns a 401 error if not
+    if 'Authorization' not in request.headers:
+        print('first abort')
+        abort(401)
+
+    #stores the bearer token as the variable auth_header
+    auth_header = request.headers.get('Authorization', None)
+    header_parts = auth_header.split()
+    print(header_parts)
+    #checks whether the header has 2 parts i.e. bearer prefix and the token itself
+    if len(header_parts) != 2:
+        print('second abort')
+        abort(401)
+
+    #checks that the bearer prefix is the 1st element
+    elif header_parts[0].lower() !=  'bearer':
+        print('third abort')
+        abort(401)
+
+    return header_parts[1]
+    #raise Exception('Not Implemented')
 
 '''
 @TODO implement check_permissions(permission, payload) method
@@ -45,10 +65,10 @@ def get_token_auth_header():
     return true otherwise
 '''
 def check_permissions(permission, payload):
-    if 'permission' not in payload:
+    '''if 'permission' not in payload:
         abort(400)
     if permission not in payload['permission']:
-        abort(403)
+        abort(403)'''
     raise Exception('Not Implemented')
 
 '''
@@ -64,8 +84,67 @@ def check_permissions(permission, payload):
 
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
+#The code here has been taken and adapted from the workspace in lesson 2 part 10 (https://classroom.udacity.com/nanodegrees/nd0044-ent/parts/45ce5212-27f6-4a09-8d73-ce375bc71b83/modules/2fc7d45e-d5b5-49cb-92b6-bc19d08ca35e/lessons/4d0e3ea3-77bf-46f9-bcd1-6a44273286d8/concepts/87007dfe-8503-40ae-bc21-3ef608c1f45f)
 def verify_decode_jwt(token):
-    raise Exception('Not Implemented')
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
+    jwks = json.loads(jsonurl.read())
+    
+    # GET THE DATA IN THE HEADER
+    unverified_header = jwt.get_unverified_header(token)
+    
+    # CHOOSE OUR KEY
+    rsa_key = {}
+    if 'kid' not in unverified_header:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Authorization malformed.'
+        }, 401)
+
+    for key in jwks['keys']:
+        if key['kid'] == unverified_header['kid']:
+            rsa_key = {
+                'kty': key['kty'],
+                'kid': key['kid'],
+                'use': key['use'],
+                'n': key['n'],
+                'e': key['e']
+            }
+    
+    # Finally, verify!!!
+    if rsa_key:
+        try:
+            # USE THE KEY TO VALIDATE THE JWT
+            payload = jwt.decode(
+                token,
+                rsa_key,
+                algorithms=ALGORITHMS,
+                audience=API_AUDIENCE,
+                issuer='https://' + AUTH0_DOMAIN + '/'
+            )
+
+            return payload
+
+        except jwt.ExpiredSignatureError:
+            raise AuthError({
+                'code': 'token_expired',
+                'description': 'Token expired.'
+            }, 401)
+
+        except jwt.JWTClaimsError:
+            raise AuthError({
+                'code': 'invalid_claims',
+                'description': 'Incorrect claims. Please, check the audience and issuer.'
+            }, 401)
+        except Exception:
+            raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to parse authentication token.'
+            }, 400)
+    raise AuthError({
+                'code': 'invalid_header',
+                'description': 'Unable to find the appropriate key.'
+            }, 400)
+    #raise Exception('Not Implemented')
 
 '''
 @TODO implement @requires_auth(permission) decorator method

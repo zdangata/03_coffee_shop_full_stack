@@ -55,6 +55,10 @@ def drinks():
 def drinks_detail(payload):
     drinks = Drink.query.all()
     formatted_drinks = [drink.long() for drink in drinks]
+
+    if (len(drinks) == 0):
+        print('There are currently no drinks saved here')
+
     token = get_token_auth_header()
     print(token)
     return jsonify({
@@ -80,7 +84,7 @@ def add_drink(payload):
     recipe = body.get('recipe', None)
 
     try:
-        drink = Drink(title=req_title, recipe=req_recipe)
+        drink = Drink(title=title, recipe=json.dumps(recipe))
         formatted_drinks = [drink.long() for drink in drinks]
         drink.insert()
         
@@ -198,3 +202,12 @@ def Auth_error(error):
                 "error": 401,
                 "message": "resource not found"
                 }), 401
+
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+                "success": False, 
+                "error": 400,
+                "message": "bad request"
+                }), 400

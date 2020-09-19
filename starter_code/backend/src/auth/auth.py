@@ -5,7 +5,7 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'fsndp.auth0.com'
+AUTH0_DOMAIN = 'fsndp.eu.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'http://localhost:5000'
 
@@ -65,11 +65,11 @@ def get_token_auth_header():
     return true otherwise
 '''
 def check_permissions(permission, payload):
-    '''if 'permission' not in payload:
+    if 'permission' not in payload:
         abort(400)
     if permission not in payload['permission']:
-        abort(403)'''
-    raise Exception('Not Implemented')
+        abort(403)
+    #raise Exception('Not Implemented')
 
 '''
 @TODO implement verify_decode_jwt(token) method
@@ -85,7 +85,9 @@ def check_permissions(permission, payload):
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
 #The code here has been taken and adapted from the workspace in lesson 2 part 10 (https://classroom.udacity.com/nanodegrees/nd0044-ent/parts/45ce5212-27f6-4a09-8d73-ce375bc71b83/modules/2fc7d45e-d5b5-49cb-92b6-bc19d08ca35e/lessons/4d0e3ea3-77bf-46f9-bcd1-6a44273286d8/concepts/87007dfe-8503-40ae-bc21-3ef608c1f45f)
+## Auth Header
 def verify_decode_jwt(token):
+    # GET THE PUBLIC KEY FROM AUTH0
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     
@@ -139,13 +141,11 @@ def verify_decode_jwt(token):
             raise AuthError({
                 'code': 'invalid_header',
                 'description': 'Unable to parse authentication token.'
-            }, 400)
+         }, 400)
     raise AuthError({
                 'code': 'invalid_header',
                 'description': 'Unable to find the appropriate key.'
             }, 400)
-    #raise Exception('Not Implemented')
-
 '''
 @TODO implement @requires_auth(permission) decorator method
     @INPUTS

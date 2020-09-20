@@ -5,7 +5,7 @@ import json
 from flask_cors import CORS
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
-from .auth.auth import AuthError, requires_auth
+from .auth.auth import AuthError, requires_auth, get_token_auth_header
 
 app = Flask(__name__)
 setup_db(app)
@@ -116,19 +116,20 @@ def update_drink(payload, drink_id):
 
     try:
         drink = Drink.query.filter(Drink.id == drink_id).all_or_none()
-        formatted_drinks = [drink.long() for drink in drinks]
+        formatted_drink = [drink.long() for drink in drinks]
 
-        if book is None:
+        if drink is None:
             abort(404)
 
-        if 'title' in body:
-            drink.title = str(body.get('title'))
+        if 'title' and 'recipe' in body:
+            #drink.title = str(body.get('title'))
+            drink = Drink(title=title, recipe=json.dumps(recipe))
 
         drink.update()
 
         return jsonify({
             'success': True,
-            'drink': formatted_drinks
+            'drink': formatted_drink
         }), 200
 
     except:

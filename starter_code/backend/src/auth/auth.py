@@ -30,6 +30,7 @@ class AuthError(Exception):
         it should raise an AuthError if the header is malformed
     return the token part of the header
 '''
+# This code was taken and adapted from Lesson 2 part 13, video 2 (https://youtu.be/v8DW_PdE48I)
 def get_token_auth_header():
     #checks if token token is in the request header and returns a 401 error if not
     if 'Authorization' not in request.headers:
@@ -64,7 +65,7 @@ def get_token_auth_header():
     it should raise an AuthError if the requested permission string is not in the payload permissions array
     return true otherwise
 '''
-# This method was taken from lesson 4 part 4 (https://classroom.udacity.com/nanodegrees/nd0044-ent/parts/45ce5212-27f6-4a09-8d73-ce375bc71b83/modules/2fc7d45e-d5b5-49cb-92b6-bc19d08ca35e/lessons/dd24cfef-5167-46e8-98f5-40b87cfbf00e/concepts/413c0df9-3464-44e9-9d60-390609edc34f)
+# This method was taken from the sample right underneath the video in lesson 4 part 4 (https://classroom.udacity.com/nanodegrees/nd0044-ent/parts/45ce5212-27f6-4a09-8d73-ce375bc71b83/modules/2fc7d45e-d5b5-49cb-92b6-bc19d08ca35e/lessons/dd24cfef-5167-46e8-98f5-40b87cfbf00e/concepts/413c0df9-3464-44e9-9d60-390609edc34f)
 def check_permissions(permission, payload):
     if 'permissions' not in payload:
                         raise AuthError({

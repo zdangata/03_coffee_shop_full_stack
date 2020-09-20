@@ -1,3 +1,4 @@
+#Code for API endpoints were taken and adapted from lessons in the (https://classroom.udacity.com/nanodegrees/nd0044-ent/parts/573bef13-96dd-4f0f-9d47-afdd5f22ebc5) API Development and Documentation part of the course
 import os
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
@@ -83,16 +84,19 @@ def add_drink(payload):
     title = body.get('title', None)
     recipe = body.get('recipe', None)
 
+    if body is None:
+        abort(404)
+        
     try:
         drink = Drink(title=title, recipe=json.dumps(recipe))
-        formatted_drinks = [drink.long() for drink in drinks]
         drink.insert()
+        #formatted_drinks = [drink.long() for drink in drinks]
         
         return jsonify({
             'success': True,
-            'drinks': formatted_drinks
+            'drinks': drink.long()
         }), 200
-    
+        
     except:
         abort(422)
 
@@ -114,22 +118,31 @@ def update_drink(payload, drink_id):
 
     body = request.get_json()
 
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
+    #recipe = json.dumps(recipe)
+
+    drink = Drink.query.filter(Drink.id == drink_id).one_or_none()
+
+    if drink is None:
+                abort(404)
+
     try:
-        drink = Drink.query.filter(Drink.id == drink_id).all_or_none()
-        formatted_drink = [drink.long() for drink in drinks]
-
-        if drink is None:
-            abort(404)
-
-        if 'title' and 'recipe' in body:
+        if title:
+            #drink = Drink(title=title)
             #drink.title = str(body.get('title'))
-            drink = Drink(title=title, recipe=json.dumps(recipe))
+            #drink = Drink(title=title, recipe=json.dumps(recipe))
+            drink.title = title
+
+        if recipe:
+            #drink = Drink(recipe=json.dumps(recipe))
+            drink.recipe = json.dumps(recipe)
 
         drink.update()
 
         return jsonify({
             'success': True,
-            'drink': formatted_drink
+            'drinks': [drink.long()]
         }), 200
 
     except:
